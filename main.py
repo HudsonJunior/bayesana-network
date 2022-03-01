@@ -42,6 +42,8 @@ def calculaProbIndependente(lista_query, df):
         lista_result.append(len(df.query(query).values) / len(df))
     return lista_result
 
+# def calProbDependent(A, B):
+
 
 def main():
     dataset = open('cmc.data', 'r')
@@ -65,14 +67,26 @@ def main():
     qEducacaoH = ['`Educação H` == 1', '`Educação H` == 2', '`Educação H` == 3', '`Educação H` == 4']
     qNumFilhos = ['`Num Filhos` == 0', '`Num Filhos` == 1', '`Num Filhos` == 2', '`Num Filhos` >= 3']
     qReligiaoM = ['`Religião M` == 0', '`Religião M` == 1']
-    qTrabalhaM = []
-    qOcupacaoH = []
-    qQualDeVida = []
-    qMidia = []
-    qMetodoC = []
+    qTrabalhaM = ['`Trabalha M?` == 0', '`Trabalha M?` == 1']
+    qOcupacaoH = ['`Ocupação H` == 0', '`Ocupação H` == 1', '`Ocupação H` == 2', '`Ocupação H` == 3']
+    qQualDeVida = ['`Q de vida` == 1', '`Q de vida` == 2', '`Q de vida` == 3', '`Q de vida` == 4']
+    qMidia = ['`Mídia` == 0', '`Mídia` == 1']
+    qMetodoC =  ['`Método C` == 1', '`Método C` == 2', '`Método C` == 3']
 
     # dale
-    print(calculaProbIndependente(qIdade, df))
+    probQidade = calculaProbIndependente(qIdade, df)
+    probQEducacaoM = calculaProbIndependente(qEducacaoM, df)
+    probQEducacaoH = calculaProbIndependente(qEducacaoH, df)
+    probQNumFilhos = calculaProbIndependente(qNumFilhos, df)
+    probReligiaoM = calculaProbIndependente(qReligiaoM, df)
+    probQTrabalhaM = calculaProbIndependente(qTrabalhaM, df)
+    probQOcupacaoH = calculaProbIndependente(qOcupacaoH, df)
+    prodQQualDeVida = calculaProbIndependente(qQualDeVida, df) 
+    probQMidia = calculaProbIndependente(qMidia, df)
+    probQMetodoC = calculaProbIndependente(qMetodoC, df)
 
+    print("idade: {}\neduca m: {}\neduca h: {}\nnum filhos: {}\nreligiao m: {}\ntrabalha m: {}\nocupacao h: {}\nqual de vida: {}\nmidia: {}\nmetodo c: {}\n".format(probQidade, probQEducacaoM, probQEducacaoH, probQNumFilhos, probReligiaoM, probQTrabalhaM, probQOcupacaoH, prodQQualDeVida, probQMidia, probQMetodoC))
 
+    
+    religiaoMDistribuicao = DiscreteDistribution({})
 main()
