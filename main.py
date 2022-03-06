@@ -53,13 +53,13 @@ def convertIdadeMulher(df):
     newIdadeList = []
     for idade in df['Idade M']:
         if(idade >= 16 and idade <= 26):
-            newIdadeList.append(0)
+            newIdadeList.append('0')
 
         if(idade >= 27 and idade <= 37):
-            newIdadeList.append(1)
+            newIdadeList.append('1')
 
         if(idade >= 38 and idade <= 49):
-            newIdadeList.append(2)
+            newIdadeList.append('2')
 
     df['Idade M'].update(pd.Series(newIdadeList))
 
@@ -70,11 +70,55 @@ def convertNumFilhos(df):
     newNumFilhosList = []
     for numFilhos in df['Num Filhos']:
         if(numFilhos >= 3):
-            newNumFilhosList.append(3)
+            newNumFilhosList.append('3')
         else:
-            newNumFilhosList.append(numFilhos)
+            newNumFilhosList.append(str(numFilhos))
 
     df['Num Filhos'].update(pd.Series(newNumFilhosList))
+
+    return df
+
+
+def convertTableToString(df):
+    listaAux = []
+    for religiao in df['Religião M']:
+        listaAux.append(str(religiao))
+    df['Religião M'].update(pd.Series(listaAux))
+    listaAux = []
+
+    for educacao in df['Educação M']:
+        listaAux.append(str(educacao))
+    df['Educação M'].update(pd.Series(listaAux))
+    listaAux = []
+
+    for educacao in df['Educação H']:
+        listaAux.append(str(educacao))
+    df['Educação H'].update(pd.Series(listaAux))
+    listaAux = []
+
+    for trabalha in df['Trabalha M?']:
+        listaAux.append(str(trabalha))
+    df['Trabalha M?'].update(pd.Series(listaAux))
+    listaAux = []
+
+    for ocupacao in df['Ocupação H']:
+        listaAux.append(str(ocupacao))
+    df['Ocupação H'].update(pd.Series(listaAux))
+    listaAux = []
+
+    for qDeVida in df['Q de vida']:
+        listaAux.append(str(qDeVida))
+    df['Q de vida'].update(pd.Series(listaAux))
+    listaAux = []
+
+    for midia in df['Mídia']:
+        listaAux.append(str(midia))
+    df['Mídia'].update(pd.Series(listaAux))
+    listaAux = []
+
+    for metodo in df['Método C']:
+        listaAux.append(str(qDeVida))
+    df['Método C'].update(pd.Series(listaAux))
 
     return df
 
@@ -83,7 +127,7 @@ def getConditionalProbabilyWithOneParent(items):
     list = []
 
     for i in items:
-        list.append([i[0][0], i[0][1], i[1]])
+        list.append([str(i[0][0]), str(i[0][1]), i[1]])
 
     return list
 
@@ -92,7 +136,8 @@ def getConditionalProbabilyWithTwoParents(items):
     list = []
 
     for i in items:
-        list.append([i[0][0], i[0][1], i[0][2], i[1]])
+        print(i)
+        list.append([str(i[0][0]), str(i[0][1]), str(i[0][2]), i[1]])
 
     return list
 
@@ -101,7 +146,8 @@ def getConditionalProbabilyWithThreeParents(items):
     list = []
 
     for i in items:
-        list.append([i[0][0], i[0][1], i[0][2], i[0][3], i[1]])
+        list.append([str(i[0][0]), str(i[0][1]),
+                    str(i[0][2]), str(i[0][3]), i[1]])
 
     return list
 
@@ -124,6 +170,7 @@ def main():
 
     df = convertIdadeMulher(df)
     df = convertNumFilhos(df)
+    df = convertTableToString(df)
 
     # queries
     qIdade = ['`Idade M` == 0', '`Idade M` == 1',
@@ -131,32 +178,9 @@ def main():
     qReligiaoM = ['`Religião M` == 0', '`Religião M` == 1']
     qMidia = ['`Mídia` == 0', '`Mídia` == 1']
 
-    # qEducacaoM = ['`Educação M` == 1', '`Educação M` == 2', '`Educação M` == 3', '`Educação M` == 4']
-    # qEducacaoH = ['`Educação H` == 1', '`Educação H` == 2', '`Educação H` == 3', '`Educação H` == 4']
-    # qNumFilhos = ['`Num Filhos` == 0', '`Num Filhos` == 1', '`Num Filhos` == 2', '`Num Filhos` >= 3']
-    # qTrabalhaM = ['`Trabalha M?` == 0', '`Trabalha M?` == 1']
-    # qOcupacaoH = ['`Ocupação H` == 0', '`Ocupação H` == 1', '`Ocupação H` == 2', '`Ocupação H` == 3']
-    # qQualDeVida = ['`Q de vida` == 1', '`Q de vida` == 2', '`Q de vida` == 3', '`Q de vida` == 4']
-    # qMetodoC =  ['`Método C` == 1', '`Método C` == 2', '`Método C` == 3']
-
-    # # dale
     probQidade = calculaProbIndependente(qIdade, df)
     probQMidia = calculaProbIndependente(qMidia, df)
     probReligiaoM = calculaProbIndependente(qReligiaoM, df)
-
-    # probQEducacaoM = calculaProbIndependente(qEducacaoM, df)
-    # probQEducacaoH = calculaProbIndependente(qEducacaoH, df)
-    # probQNumFilhos = calculaProbIndependente(qNumFilhos, df)
-    # probQTrabalhaM = calculaProbIndependente(qTrabalhaM, df)
-    # probQOcupacaoH = calculaProbIndependente(qOcupacaoH, df)
-    # prodQQualDeVida = calculaProbIndependente(qQualDeVida, df)
-    # probQMetodoC = calculaProbIndependente(qMetodoC, df)
-
-    # print("idade: {}\neduca m: {}\neduca h: {}\nnum filhos: {}\nreligiao m: {}\ntrabalha m: {}\nocupacao h: {}\nqual de vida: {}\nmidia: {}\nmetodo c: {}\n".format(probQidade, probQEducacaoM, probQEducacaoH, probQNumFilhos, probReligiaoM, probQTrabalhaM, probQOcupacaoH, prodQQualDeVida, probQMidia, probQMetodoC))
-    # print(df.groupby('Mídia')['Educação H'].value_counts(normalize=True))
-
-    # print(df.groupby(['Religião M', 'Mídia'])[
-    # 'Educação M'].value_counts(normalize=True))
 
     network = BayesianNetwork(
         "Método contraceptivo")
@@ -188,14 +212,13 @@ def main():
 
     educacaoM = ConditionalProbabilityTable(
         educacaoMTable, [religiaoM, midia])
-
     # Número de filhos
     numFilhosTable = getConditionalProbabilyWithTwoParents(df.groupby(['Educação M', 'Idade M'])[
         'Num Filhos'].value_counts(normalize=True).iteritems())
-
+    print(df.groupby(['Educação M', 'Idade M'])[
+        'Num Filhos'].value_counts(normalize=True))
     numFilhos = ConditionalProbabilityTable(
         numFilhosTable, [educacaoM, idadeM])
-
     # Mulher trabalha?
     trabalhoMTable = getConditionalProbabilyWithTwoParents(df.groupby(['Religião M', 'Educação M'])[
         'Trabalha M?'].value_counts(normalize=True).iteritems())
@@ -205,9 +228,7 @@ def main():
     # Qualidade de vida
     qDeVidaTable = getConditionalProbabilyWithTwoParents(df.groupby(['Ocupação H', 'Trabalha M?'])[
         'Q de vida'].value_counts(normalize=True).iteritems())
-
     qDeVida = ConditionalProbabilityTable(qDeVidaTable, [ocupacaoH, trabalhoM])
-
     # Método contraceptivo
     metodoCTable = getConditionalProbabilyWithThreeParents(df.groupby(['Q de vida', 'Educação M', 'Num Filhos'])[
         'Método C'].value_counts(normalize=True).iteritems())
@@ -226,35 +247,34 @@ def main():
     trabalhoMNode = State(trabalhoM, name='Trabalha M?')
     metodoCNode = State(metodoC, name='Método Contraceptivo')
 
-    network.add_states(idadeMulherNode, midiaNode,
-                       religiaoNode, educacaoHomemNode, numFilhosNode, educacaoMulherNode, ocupacaoHomemNode, qDeVidaNode, trabalhoMNode, metodoCNode)
-
+    network.add_states(idadeMulherNode, educacaoMulherNode,
+                       numFilhosNode)
     # Nó - Num de filhos
     network.add_edge(educacaoMulherNode, numFilhosNode)
     network.add_edge(idadeMulherNode, numFilhosNode)
 
-    # Nó - Educação da mulher
-    network.add_edge(midiaNode, educacaoMulherNode)
-    network.add_edge(religiaoNode, educacaoMulherNode)
+    # # Nó - Educação da mulher
+    # network.add_edge(midiaNode, educacaoMulherNode)
+    # network.add_edge(religiaoNode, educacaoMulherNode)
 
-    # Nó - Educação do marido
-    network.add_edge(midiaNode, educacaoHomemNode)
+    # # Nó - Educação do marido
+    # network.add_edge(midiaNode, educacaoHomemNode)
 
-    # Nó - Ocupação do marido
-    network.add_edge(educacaoHomemNode, ocupacaoHomemNode)
+    # # Nó - Ocupação do marido
+    # network.add_edge(educacaoHomemNode, ocupacaoHomemNode)
 
-    # Nó - Mulher trabalha?
-    network.add_edge(educacaoMulherNode, trabalhoMNode)
-    network.add_edge(religiaoNode, trabalhoMNode)
+    # # Nó - Mulher trabalha?
+    # network.add_edge(educacaoMulherNode, trabalhoMNode)
+    # network.add_edge(religiaoNode, trabalhoMNode)
 
-    # Nó - índice do padrão de vida
-    network.add_edge(ocupacaoHomemNode, qDeVidaNode)
-    network.add_edge(trabalhoMNode, qDeVidaNode)
+    # # Nó - índice do padrão de vida
+    # network.add_edge(ocupacaoHomemNode, qDeVidaNode)
+    # network.add_edge(trabalhoMNode, qDeVidaNode)
 
-    # Nó - Método contraceptivo usado
-    network.add_edge(qDeVidaNode, metodoCNode)
-    network.add_edge(educacaoMulherNode, metodoCNode)
-    network.add_edge(numFilhosNode, metodoCNode)
+    # # Nó - Método contraceptivo usado
+    # network.add_edge(qDeVidaNode, metodoCNode)
+    # network.add_edge(educacaoMulherNode, metodoCNode)
+    # network.add_edge(numFilhosNode, metodoCNode)
     print(network)
     network.bake()
 
