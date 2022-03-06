@@ -30,16 +30,9 @@
 # 10. Contraceptive method used (class attribute) 1=No-use, 2=Long-term, 3=Short-term
 # Método C (1, 2, 3)
 
-from re import M
 from sre_parse import State
 import pandas as pd
-import matplotlib.pyplot as plt  # for drawing graphs
 from pomegranate import *
-import math
-
-from pomegranate.distributions import *
-from pomegranate.distributions.ConditionalProbabilityTable import ConditionalProbabilityTable
-from pomegranate.distributions.DiscreteDistribution import DiscreteDistribution
 
 pd.set_option('display.max_rows', 500)
 
@@ -49,8 +42,6 @@ def calculaProbIndependente(lista_query, df):
     for query in lista_query:
         lista_result.append(len(df.query(query).values) / len(df))
     return lista_result
-
-# def calProbDependent(A, B):
 
 
 def convertIdadeMulher(df):
@@ -129,7 +120,6 @@ def convertTableToString(df):
 
 def getConditionalProbabilyWithOneParent(items):
     list = []
-
     for i in items:
         list.append([str(i[0][0]), str(i[0][1]), i[1]])
 
@@ -138,7 +128,6 @@ def getConditionalProbabilyWithOneParent(items):
 
 def getConditionalProbabilyWithTwoParents(items):
     list = []
-
     for i in items:
         list.append([str(i[0][0]), str(i[0][1]), str(i[0][2]), i[1]])
 
@@ -147,8 +136,8 @@ def getConditionalProbabilyWithTwoParents(items):
 
 def getConditionalProbabilyWithThreeParents(items):
     list = []
-
     for i in items:
+        print(i)
         list.append([str(i[0][0]), str(i[0][1]), str(i[0][2]), str(i[0][3]), i[1]])
 
     return list
@@ -196,43 +185,44 @@ def main():
 
     # Edução do homem
     educacaoHTable = getConditionalProbabilyWithOneParent(df.groupby(
-        'Mídia')['Educação H'].value_counts(normalize=True).iteritems())
+        'Mídia')['Educação H'].value_counts(normalize=True).unstack(fill_value=0).stack().iteritems())
 
     educacaoH = ConditionalProbabilityTable(educacaoHTable, [midia])
 
     # Ocupação do homem
     ocupacaoHTable = getConditionalProbabilyWithOneParent(df.groupby('Educação H')[
-        'Ocupação H'].value_counts(normalize=True).iteritems())
+        'Ocupação H'].value_counts(normalize=True).unstack(fill_value=0).stack().iteritems())
 
     ocupacaoH = ConditionalProbabilityTable(ocupacaoHTable, [educacaoH])
 
     # Educação da mulher
     educacaoMTable = getConditionalProbabilyWithTwoParents(df.groupby(['Religião M', 'Mídia'])[
-        'Educação M'].value_counts(normalize=True).iteritems())
+        'Educação M'].value_counts(normalize=True).unstack(fill_value=0).stack().iteritems())
 
     educacaoM = ConditionalProbabilityTable(
         educacaoMTable, [religiaoM, midia])
 
     # Número de filhos
     numFilhosTable = getConditionalProbabilyWithTwoParents(df.groupby(['Educação M', 'Idade M'])[
-        'Num Filhos'].value_counts(normalize=True).iteritems())
+        'Num Filhos'].value_counts(normalize=True).unstack(fill_value=0).stack().iteritems())
 
     numFilhos = ConditionalProbabilityTable(
         numFilhosTable, [educacaoM, idadeM])
     # Mulher trabalha?
     trabalhoMTable = getConditionalProbabilyWithTwoParents(df.groupby(['Religião M', 'Educação M'])[
-        'Trabalha M?'].value_counts(normalize=True).iteritems())
+        'Trabalha M?'].value_counts(normalize=True).unstack(fill_value=0).stack().iteritems())
     trabalhoM = ConditionalProbabilityTable(
         trabalhoMTable, [religiaoM, educacaoM])
 
     # Qualidade de vida
     qDeVidaTable = getConditionalProbabilyWithTwoParents(df.groupby(['Ocupação H', 'Trabalha M?'])[
-        'Q de vida'].value_counts(normalize=True).iteritems())
+        'Q de vida'].value_counts(normalize=True).unstack(fill_value=0).stack().iteritems())
     qDeVida = ConditionalProbabilityTable(qDeVidaTable, [ocupacaoH, trabalhoM])
 
     # Método contraceptivo
+    categorias = ['1', '2', '3']
     metodoCTable = getConditionalProbabilyWithThreeParents(df.groupby(['Q de vida', 'Educação M', 'Num Filhos'])[
-        'Método C'].value_counts(normalize=True).iteritems())
+        'Método C'].value_counts(normalize=True).unstack(fill_value=0).stack().iteritems())
     metodoC = ConditionalProbabilityTable(metodoCTable, [qDeVida, educacaoM, numFilhos])
 
     idadeMulherNode = State(idadeM, name="Idade M")
@@ -247,8 +237,8 @@ def main():
     metodoCNode = State(metodoC, name="Método C")
 
     # Estados
-    network.add_states(metodoCNode, idadeMulherNode, educacaoMulherNode, numFilhosNode, midiaNode, religiaoNode,
-                       educacaoHomemNode, ocupacaoHomemNode, trabalhoMNode, qDeVidaNode)
+    network.add_states(idadeMulherNode, educacaoMulherNode, numFilhosNode, midiaNode, religiaoNode,
+                       educacaoHomemNode, ocupacaoHomemNode, trabalhoMNode, qDeVidaNode, metodoCNode)
 
     # # Nó - Educação da mulher
     network.add_edge(midiaNode, educacaoMulherNode)
@@ -278,10 +268,20 @@ def main():
     network.add_edge(qDeVidaNode, metodoCNode)
     network.bake()
 
-    beliefs = network.predict_proba({'Educação M': '1'})
+    print("Cenário 1:\n Religiao Islamica, Educação baixa, Sem filhos, Menor que 26 anos de idade")
+    beliefs = network.predict_proba({'Religião M': '1', 'Educação M' : '1', 'Num Filhos' : '0', 'Idade M' : '0'})
     beliefs = map(str, beliefs)
     print("n".join("{} {}".format( state.name, belief ) for state, belief in zip (network.states, beliefs)))
 
+    print("Cenário 2:\n Educação alta, Três ou mais filhos, Alta qualidade de vida")
+    beliefs = network.predict_proba({'Educação M' : '4', 'Num Filhos' : '3', 'Q de vida' : '4'})
+    beliefs = map(str, beliefs)
+    print("n".join("{} {}".format( state.name, belief ) for state, belief in zip (network.states, beliefs)))
+
+    print("Cenário 3:\n Educação alta, Boa exposição a mídia, baixa qualidade de vida, já tem um filho")
+    beliefs = network.predict_proba({'Educação M': '4', 'Num Filhos': '1', 'Q de vida': '1', 'Mídia' : '0'})
+    beliefs = map(str, beliefs)
+    print("n".join("{} {}".format(state.name, belief) for state, belief in zip(network.states, beliefs)))
 
 
 main()
