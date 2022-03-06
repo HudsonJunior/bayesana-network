@@ -136,7 +136,6 @@ def getConditionalProbabilyWithTwoParents(items):
     list = []
 
     for i in items:
-        print(i)
         list.append([str(i[0][0]), str(i[0][1]), str(i[0][2]), i[1]])
 
     return list
@@ -173,25 +172,24 @@ def main():
     df = convertTableToString(df)
 
     # queries
-    qIdade = ['`Idade M` == 0', '`Idade M` == 1',
-              '`Idade M` == 2']
-    qReligiaoM = ['`Religião M` == 0', '`Religião M` == 1']
-    qMidia = ['`Mídia` == 0', '`Mídia` == 1']
+    qIdade = ['`Idade M` == \'0\'', '`Idade M` == \'1\'',
+              '`Idade M` == \'2\'']
+    qReligiaoM = ['`Religião M` == \'0\'', '`Religião M` == \'1\'']
+    qMidia = ['`Mídia` == \'0\'', '`Mídia` == \'1\'']
 
     probQidade = calculaProbIndependente(qIdade, df)
     probQMidia = calculaProbIndependente(qMidia, df)
     probReligiaoM = calculaProbIndependente(qReligiaoM, df)
-
     network = BayesianNetwork(
         "Método contraceptivo")
 
     # variáveis discretas independentes
     idadeM = DiscreteDistribution(
-        {0: probQidade[0], 1: probQidade[1], 2: probQidade[2]})
-    midia = DiscreteDistribution({0: probQMidia[0], 1: probQMidia[1]})
+        {'0': probQidade[0], '1': probQidade[1], '2': probQidade[2]})
+    midia = DiscreteDistribution(
+        {'0': probQMidia[0], '1': probQMidia[1], '2': probQMidia[0]})
     religiaoM = DiscreteDistribution(
-        {0: probReligiaoM[0], 1: probReligiaoM[1]})
-
+        {'0': probReligiaoM[0], '1': probReligiaoM[1], '2': probReligiaoM[0]})
     # variáveis dependentes
 
     # Edução do homem
@@ -212,11 +210,11 @@ def main():
 
     educacaoM = ConditionalProbabilityTable(
         educacaoMTable, [religiaoM, midia])
+    print(educacaoM)
     # Número de filhos
     numFilhosTable = getConditionalProbabilyWithTwoParents(df.groupby(['Educação M', 'Idade M'])[
         'Num Filhos'].value_counts(normalize=True).iteritems())
-    print(df.groupby(['Educação M', 'Idade M'])[
-        'Num Filhos'].value_counts(normalize=True))
+
     numFilhos = ConditionalProbabilityTable(
         numFilhosTable, [educacaoM, idadeM])
     # Mulher trabalha?
@@ -275,7 +273,6 @@ def main():
     # network.add_edge(qDeVidaNode, metodoCNode)
     # network.add_edge(educacaoMulherNode, metodoCNode)
     # network.add_edge(numFilhosNode, metodoCNode)
-    print(network)
     network.bake()
 
 
