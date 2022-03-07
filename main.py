@@ -1,40 +1,8 @@
-# Características do dataset escolhido:
-
-# 1. Wife's age (numerical)
-# Idade M (16-26, 27-37, 38-49)
-# 0       1       2
-
-# 2. Wife's education (categorical) 1=low, 2, 3, 4=high
-# Educação M (1, 2, 3, 4)
-
-# 3. Husband's education (categorical) 1=low, 2, 3, 4=high
-# Educação H (1, 2, 3, 4)
-
-# 4. Number of children ever born (numerical)
-# Num Filhos (0, 1, 2, 3+)
-# 0  1  2  3
-
-# 5. Wife's religion (binary) 0=Non-Islam, 1=Islam
-# Religião M (0, 1)
-
-# 6. Wife's now working? (binary) 0=Yes, 1=No
-# Trabalha M? (0, 1)
-
-# 7. Husband's occupation (categorical) 1, 2, 3, 4
-# Ocupação H (0, 1, 2, 3)
-
-# 8. Standard-of-living index (categorical) 1=low, 2, 3, 4=high
-# Q de vida (1, 2, 3, 4)
-
-# 9. Media exposure (binary) 0=Good, 1=Not good
-# Mídia (0, 1)
-
-# 10. Contraceptive method used (class attribute) 1=No-use, 2=Long-term, 3=Short-term
-# Método C (1, 2, 3)
-
 from sre_parse import State
 import pandas as pd
 from pomegranate import *
+
+# Função que realiza o cálculo das probabilidades independetes
 
 
 def calculaProbIndependente(lista_query, df):
@@ -44,6 +12,8 @@ def calculaProbIndependente(lista_query, df):
         lista_result.append(len(df.query(query).values) / len(df))
 
     return lista_result
+
+# Função que converte a idade da mulher em categorias
 
 
 def convertIdadeMulher(df):
@@ -63,6 +33,8 @@ def convertIdadeMulher(df):
 
     return df
 
+# Função que converte o número de filhos em categorias
+
 
 def convertNumFilhos(df):
     newNumFilhosList = []
@@ -75,6 +47,8 @@ def convertNumFilhos(df):
     df['Num Filhos'].update(pd.Series(newNumFilhosList))
 
     return df
+
+# Função que converte os valores do dataframe para String
 
 
 def convertTableToString(df):
@@ -121,6 +95,8 @@ def convertTableToString(df):
 
     return df
 
+# Função que recupera a probabilidade condicional de uma variável dependente com um pai
+
 
 def getConditionalProbabilyWithOneParent(items):
     list = []
@@ -129,6 +105,8 @@ def getConditionalProbabilyWithOneParent(items):
 
     return list
 
+# Função que recupera a probabilidade condicional de uma variável dependente com dois pais
+
 
 def getConditionalProbabilyWithTwoParents(items):
     list = []
@@ -136,6 +114,8 @@ def getConditionalProbabilyWithTwoParents(items):
         list.append([str(i[0][0]), str(i[0][1]), str(i[0][2]), i[1]])
 
     return list
+
+# Função que recupera a probabilidade condicional de uma variável dependente com três pais
 
 
 def getConditionalProbabilyWithThreeParents(items):
@@ -154,6 +134,7 @@ def main():
 
     newDatasetLines = []
 
+    # Formatação do data set
     for line in datasetLines:
         stringLine = line.replace('\n', '').split(',')
         intLine = [int(x) for x in stringLine]
