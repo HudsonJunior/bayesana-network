@@ -1,8 +1,9 @@
 # Características do dataset escolhido:
-#
+
 # 1. Wife's age (numerical)
 # Idade M (16-26, 27-37, 38-49)
 # 0       1       2
+
 # 2. Wife's education (categorical) 1=low, 2, 3, 4=high
 # Educação M (1, 2, 3, 4)
 
@@ -12,6 +13,7 @@
 # 4. Number of children ever born (numerical)
 # Num Filhos (0, 1, 2, 3+)
 # 0  1  2  3
+
 # 5. Wife's religion (binary) 0=Non-Islam, 1=Islam
 # Religião M (0, 1)
 
@@ -34,18 +36,19 @@ from sre_parse import State
 import pandas as pd
 from pomegranate import *
 
-pd.set_option('display.max_rows', 500)
-
 
 def calculaProbIndependente(lista_query, df):
     lista_result = []
+
     for query in lista_query:
         lista_result.append(len(df.query(query).values) / len(df))
+
     return lista_result
 
 
 def convertIdadeMulher(df):
     newIdadeList = []
+
     for idade in df['Idade M']:
         if(idade >= 16 and idade <= 26):
             newIdadeList.append('0')
@@ -76,6 +79,7 @@ def convertNumFilhos(df):
 
 def convertTableToString(df):
     listaAux = []
+
     for religiao in df['Religião M']:
         listaAux.append(str(religiao))
     df['Religião M'].update(pd.Series(listaAux))
@@ -137,15 +141,14 @@ def getConditionalProbabilyWithTwoParents(items):
 def getConditionalProbabilyWithThreeParents(items):
     list = []
     for i in items:
-        print(i)
-        list.append([str(i[0][0]), str(i[0][1]), str(i[0][2]), str(i[0][3]), i[1]])
+        list.append([str(i[0][0]), str(i[0][1]),
+                    str(i[0][2]), str(i[0][3]), i[1]])
 
     return list
 
 
 def main():
     dataset = open('cmc.data', 'r')
-    fileTest = open('test.txt', 'a+')
 
     datasetLines = dataset.readlines()
 
@@ -172,6 +175,8 @@ def main():
     probQidade = calculaProbIndependente(qIdade, df)
     probQMidia = calculaProbIndependente(qMidia, df)
     probReligiaoM = calculaProbIndependente(qReligiaoM, df)
+
+    # network
     network = BayesianNetwork("Método contraceptivo")
 
     # variáveis discretas independentes
@@ -181,6 +186,7 @@ def main():
         {'0': probQMidia[0], '1': probQMidia[1]})
     religiaoM = DiscreteDistribution(
         {'0': probReligiaoM[0], '1': probReligiaoM[1]})
+
     # variáveis dependentes
 
     # Edução do homem
@@ -208,6 +214,7 @@ def main():
 
     numFilhos = ConditionalProbabilityTable(
         numFilhosTable, [educacaoM, idadeM])
+
     # Mulher trabalha?
     trabalhoMTable = getConditionalProbabilyWithTwoParents(df.groupby(['Religião M', 'Educação M'])[
         'Trabalha M?'].value_counts(normalize=True).unstack(fill_value=0).stack().iteritems())
@@ -220,11 +227,12 @@ def main():
     qDeVida = ConditionalProbabilityTable(qDeVidaTable, [ocupacaoH, trabalhoM])
 
     # Método contraceptivo
-    categorias = ['1', '2', '3']
     metodoCTable = getConditionalProbabilyWithThreeParents(df.groupby(['Q de vida', 'Educação M', 'Num Filhos'])[
         'Método C'].value_counts(normalize=True).unstack(fill_value=0).stack().iteritems())
-    metodoC = ConditionalProbabilityTable(metodoCTable, [qDeVida, educacaoM, numFilhos])
+    metodoC = ConditionalProbabilityTable(
+        metodoCTable, [qDeVida, educacaoM, numFilhos])
 
+    # Estados da rede
     idadeMulherNode = State(idadeM, name="Idade M")
     midiaNode = State(midia, name="Mídia")
     religiaoNode = State(religiaoM, name="Religião M")
@@ -236,11 +244,10 @@ def main():
     trabalhoMNode = State(trabalhoM, name="Trabalha M?")
     metodoCNode = State(metodoC, name="Método C")
 
-    # Estados
     network.add_states(idadeMulherNode, educacaoMulherNode, numFilhosNode, midiaNode, religiaoNode,
                        educacaoHomemNode, ocupacaoHomemNode, trabalhoMNode, qDeVidaNode, metodoCNode)
 
-    # # Nó - Educação da mulher
+    # Nó - Educação da mulher
     network.add_edge(midiaNode, educacaoMulherNode)
     network.add_edge(religiaoNode, educacaoMulherNode)
 
@@ -268,20 +275,33 @@ def main():
     network.add_edge(qDeVidaNode, metodoCNode)
     network.bake()
 
-    print("Cenário 1:\n Religiao Islamica, Educação baixa, Sem filhos, Menor que 26 anos de idade")
-    beliefs = network.predict_proba({'Religião M': '1', 'Educação M' : '1', 'Num Filhos' : '0', 'Idade M' : '0'})
+    # Cenário 1
+    print("Cenário 1:\nReligiao Islamica, Educação baixa, Sem filhos, Menor que 26 anos de idade")
+    beliefs = network.predict_proba(
+        {'Religião M': '1', 'Educação M': '1', 'Num Filhos': '0', 'Idade M': '0'})
     beliefs = map(str, beliefs)
-    print("n".join("{} {}".format( state.name, belief ) for state, belief in zip (network.states, beliefs)))
+    print("\n".join("{} {}".format(state.name, belief)
+          for state, belief in zip(network.states, beliefs)))
+    print('\n')
 
-    print("Cenário 2:\n Educação alta, Três ou mais filhos, Alta qualidade de vida")
-    beliefs = network.predict_proba({'Educação M' : '4', 'Num Filhos' : '3', 'Q de vida' : '4'})
+    # Cenário 2
+    print("Cenário 2:\nEducação alta, Três ou mais filhos, Alta qualidade de vida")
+    beliefs = network.predict_proba(
+        {'Educação M': '4', 'Num Filhos': '3', 'Q de vida': '4'})
     beliefs = map(str, beliefs)
-    print("n".join("{} {}".format( state.name, belief ) for state, belief in zip (network.states, beliefs)))
+    print("\n".join("{} {}".format(state.name, belief)
+          for state, belief in zip(network.states, beliefs)))
+    print('\n')
 
-    print("Cenário 3:\n Educação alta, Boa exposição a mídia, baixa qualidade de vida, já tem um filho")
-    beliefs = network.predict_proba({'Educação M': '4', 'Num Filhos': '1', 'Q de vida': '1', 'Mídia' : '0'})
+    # Cenário 3
+    print("Cenário 3:\nEducação alta, Boa exposição a mídia, baixa qualidade de vida, já tem um filho")
+    beliefs = network.predict_proba(
+        {'Educação M': '4', 'Num Filhos': '1', 'Q de vida': '1', 'Mídia': '0'})
     beliefs = map(str, beliefs)
-    print("n".join("{} {}".format(state.name, belief) for state, belief in zip(network.states, beliefs)))
+    print("\n".join("{} {}".format(state.name, belief)
+          for state, belief in zip(network.states, beliefs)))
+    print('\n')
 
 
-main()
+if __name__ == '__main__':
+    main()
